@@ -215,7 +215,8 @@ func (s *service) start() error {
 
 	go func() {
 		ch := <-s.exit
-		ch <- l.Close()
+		// ch <- l.Close()
+		ch <- nil
 	}()
 
 	log.Logf("Listening on %v", l.Addr().String())
