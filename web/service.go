@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -196,6 +197,7 @@ func (s *service) start() error {
 		httpSrv = s.opts.Server
 	} else {
 		httpSrv = &http.Server{}
+		s.opts.Server = httpSrv
 	}
 
 	httpSrv.Handler = h
@@ -213,7 +215,8 @@ func (s *service) start() error {
 
 	go func() {
 		ch := <-s.exit
-		ch <- l.Close()
+		// ch <- l.Close()
+		ch <- nil
 	}()
 
 	log.Logf("Listening on %v", l.Addr().String())
@@ -385,6 +388,11 @@ func (s *service) Run() error {
 	// wait on context cancel
 	case <-s.opts.Context.Done():
 		log.Logf("Received context shutdown")
+	}
+
+	// shutdown gracefully
+	if err := s.opts.Server.Shutdown(context.TODO()); err != nil {
+		return err
 	}
 
 	// exit reg loop
